@@ -1,0 +1,122 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       String  @id @default(cuid())
+  username String  @unique
+  password String
+  position String
+  member   Member?
+}
+
+model Member {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id])
+  name        String
+  email       String    @unique
+  phoneNo     String
+  cnic        String    @unique
+  salary      Float
+  hireDate    DateTime  @default(now())
+  
+  // Discriminator for member type
+  memberType  String    // "EMPLOYEE" | "MANAGER" | "DEPT_HEAD" | "BRANCH_HEAD" | "CEO"
+  
+  // Employee specific relations
+  projectsWorkedOn ProjectEmployee[]
+  managerAssigned Member?         @relation("EmployeeToManager", fields: [managerId], references: [id])
+  managerId       String?
+
+  // Manager specific relations
+  managedEmployees Member[]        @relation("EmployeeToManager")
+  managedProjects Project[]
+  
+  // Department Head specific relations
+  departmentManaged Department?
+  
+  // Branch Head specific relations
+  branchManaged    Branch?
+  
+  // CEO specific relations
+  companyManaged   Company?
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  budget      Float
+  status      String    // "ACTIVE" | "COMPLETED" | "ON_HOLD"
+  managerId   String
+  manager     Member    @relation(fields: [managerId], references: [id])
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id])
+  employees   ProjectEmployee[]
+  department  Department @relation(fields: [departmentId], references: [id])
+  departmentId String
+  paymentMade Boolean   @default(false)
+}
+
+model ProjectEmployee {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  employeeId String
+  employee  Member   @relation(fields: [employeeId], references: [id])
+  assignDate DateTime @default(now())
+
+  @@unique([projectId, employeeId])
+}
+
+model Department {
+  id          String    @id @default(cuid())
+  name        String
+  phoneNo     String
+  headId      String    @unique
+  head        Member    @relation(fields: [headId], references: [id])
+  branchId    String
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  projects    Project[]
+}
+
+model Branch {
+  id          String    @id @default(cuid())
+  name        String
+  phoneNo     String
+  country     String
+  city        String
+  headId      String    @unique
+  head        Member    @relation(fields: [headId], references: [id])
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id])
+  departments Department[]
+}
+
+model Company {
+  id          String    @id @default(cuid())
+  name        String
+  phoneNo     String
+  founder     String
+  ceoId       String    @unique
+  ceo         Member    @relation(fields: [ceoId], references: [id])
+  branches    Branch[]
+}
+
+model Client {
+  id          String    @id @default(cuid())
+  name        String
+  signDate    DateTime  @default(now())
+  netWorth    Float
+  phoneNo     String
+  email       String    @unique
+  address     String
+  projects    Project[]
+}
+
