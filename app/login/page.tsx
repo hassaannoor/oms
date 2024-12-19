@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -58,8 +59,11 @@ export default function LoginPage() {
               required
             />
           </div>
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full mb-1">
             Log In
+          </Button>
+          <Button className="w-full" variant={"outline"}>
+            <Link href="/signup">Sign Up</Link>
           </Button>
         </form>
       </div>

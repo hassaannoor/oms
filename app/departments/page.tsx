@@ -25,7 +25,8 @@ export default function DepartmentsPage() {
   const fetchDepartments = async () => {
     const res = await fetch('/api/departments');
     const data = await res.json();
-    setDepartments(data);
+    if (data.length) 
+        setDepartments(data);
   };
 
   const handleCreateOrUpdate = async (e: React.FormEvent<HTMLFormElement>) => {

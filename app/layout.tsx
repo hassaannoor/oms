@@ -19,7 +19,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <div className="flex">
-          <aside className="w-64 bg-gray-800 text-white h-screen">
+          <div className="w-64"></div>
+          <aside className="w-64 bg-gray-800 text-white h-screen fixed">
             <div className="p-4">
               <h2 className="text-2xl font-bold">Dashboard</h2>
             </div>

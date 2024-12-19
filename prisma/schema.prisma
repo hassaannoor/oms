@@ -78,34 +78,34 @@ model ProjectEmployee {
 model Department {
   id          String    @id @default(cuid())
   name        String
-  phoneNo     String
-  headId      String    @unique
-  head        Member    @relation(fields: [headId], references: [id])
-  branchId    String
-  branch      Branch    @relation(fields: [branchId], references: [id])
+  phoneNo     String?
+  headId      String?    @unique
+  head        Member?    @relation(fields: [headId], references: [id])
+  branchId    String?
+  branch      Branch?    @relation(fields: [branchId], references: [id])
   projects    Project[]
 }
 
 model Branch {
   id          String    @id @default(cuid())
   name        String
-  phoneNo     String
-  country     String
-  city        String
-  headId      String    @unique
-  head        Member    @relation(fields: [headId], references: [id])
-  companyId   String
-  company     Company   @relation(fields: [companyId], references: [id])
+  phoneNo     String?
+  country     String?
+  city        String?
+  headId      String?    @unique
+  head        Member?    @relation(fields: [headId], references: [id])
+  companyId   String?
+  company     Company?   @relation(fields: [companyId], references: [id])
   departments Department[]
 }
 
 model Company {
   id          String    @id @default(cuid())
   name        String
-  phoneNo     String
-  founder     String
-  ceoId       String    @unique
-  ceo         Member    @relation(fields: [ceoId], references: [id])
+  phoneNo     String?
+  founder     String?
+  ceoId       String?    @unique
+  ceo         Member?    @relation(fields: [ceoId], references: [id])
   branches    Branch[]
 }
 
