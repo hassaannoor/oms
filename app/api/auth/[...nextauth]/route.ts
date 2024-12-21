@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db"
 import { compare } from "bcrypt"
 
 const handler =  NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma.prisma ? prisma.prisma : prisma),
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -17,16 +17,23 @@ const handler =  NextAuth({
         if (!credentials?.username || !credentials?.password) {
           return null
         }
-
-        const user = await prisma.user.findUnique({
-          where: { username: credentials.username }
-        })
+        let user
+        try {
+            const _prisma = (prisma.prisma ? prisma.prisma : prisma)
+            user = await _prisma.user.findUnique({
+            where: { username: credentials.username }
+            })
+        } catch(e) {
+            console.error(e)
+            return null
+        }
 
         if (!user) {
           return null
         }
 
-        const isPasswordValid = await compare(credentials.password, user.password)
+        // const isPasswordValid = await compare(credentials.password, user.password)
+        const isPasswordValid = credentials.password === user.password
 
         if (!isPasswordValid) {
           return null

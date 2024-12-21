@@ -20,17 +20,17 @@ export async function POST(request: Request) {
         budget: body.budget,
         status: body.status,
         // managerId: body.managerId,
-        manager: {
+        manager: body.managerId ? {
             connect: body.managerId
-        },
+        } : undefined,
         // clientId: body.clientId,
-        client: {
+        client: body.clientId ? {
             connect: body.clientId
-        },
+        } : undefined,
         // departmentId: body.departmentId,
-        department: {
+        department: body.departmentId ? {
             connect: body.departmentId
-        },
+        } : undefined,
         paymentMade: body.paymentMade,
       }
     })

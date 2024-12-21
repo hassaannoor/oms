@@ -1,66 +1,51 @@
-import './globals.css'
-import { Inter } from 'next/font/google'
-import { Providers } from './providers'
-import Link from 'next/link'
+'use client'
 
-const inter = Inter({ subsets: ['latin'] })
+import './globals.css';
+import { SessionProvider } from 'next-auth/react'
+// import { Inter } from 'next/font/google';
+// import { useRouter } from 'next/navigation';
+// import { useEffect } from 'react';
+// import { LoadingProvider, useLoading } from '../context/LoadingContext'; // Adjust path if necessary
+// import LoadingOverlay from '../components/LoadingOverlay'; // Adjust path if necessary
 
-export const metadata = {
-  title: 'Office Management System',
-  description: 'Efficient office management solution',
-}
+// export const metadata = {
+//   title: 'OMS',
+//   description: 'Office Management System',
+// };
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
+//   const router = useRouter();
+//   const { startLoading, stopLoading } = useLoading();
+
+//   useEffect(() => {
+//     const handleRouteChangeStart = () => startLoading();
+//     const handleRouteChangeEnd = () => stopLoading();
+
+//     router.events.on('routeChangeStart', handleRouteChangeStart);
+//     router.events.on('routeChangeComplete', handleRouteChangeEnd);
+//     router.events.on('routeChangeError', handleRouteChangeEnd);
+
+//     return () => {
+//       router.events.off('routeChangeStart', handleRouteChangeStart);
+//       router.events.off('routeChangeComplete', handleRouteChangeEnd);
+//       router.events.off('routeChangeError', handleRouteChangeEnd);
+//     };
+//   }, [router, startLoading, stopLoading]);
+
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <div className="flex">
-          <div className="w-64"></div>
-          <aside className="w-64 bg-gray-800 text-white h-screen fixed">
-            <div className="p-4">
-              <h2 className="text-2xl font-bold">Dashboard</h2>
-            </div>
-            <nav className="mt-4">
-              <ul>
-                <li>
-                  <Link href="/projects" className="block p-4 hover:bg-gray-700">
-                    Projects
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/members" className="block p-4 hover:bg-gray-700">
-                    Members
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/clients" className="block p-4 hover:bg-gray-700">
-                    Clients
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/departments" className="block p-4 hover:bg-gray-700">
-                    Departments
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/branches" className="block p-4 hover:bg-gray-700">
-                    Branches
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </aside>
-
-          <main className="flex-1 p-6">
-            <Providers>{children}</Providers>
-          </main>
-        </div>
+      <body>
+        {/* <LoadingProvider>
+          <LoadingOverlay /> */}
+          <SessionProvider>
+            {children}
+          </SessionProvider>
+        {/* </LoadingProvider> */}
       </body>
     </html>
-  )
+  );
 }
-
