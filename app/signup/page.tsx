@@ -12,6 +12,7 @@ import { hash } from 'bcrypt'
 export default function SignUpPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [errors, setErrors] = useState({ username: '', password: '' })
   const [successMessage, setSuccessMessage] = useState('')
   const router = useRouter()
@@ -25,6 +26,9 @@ export default function SignUpPage() {
     }
     if (!password) {
       newErrors.password = 'PLEASE FILL IN THIS FIELD'
+    }
+    if (password !== confirmPassword) {
+      newErrors.password = 'PASSWORDS DO NOT MATCH'
     }
 
     if (newErrors.username || newErrors.password) {
@@ -100,6 +104,20 @@ export default function SignUpPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onFocus={() => clearError('password')}
+              className={errors.password ? 'border-red-500' : ''}
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               onFocus={() => clearError('password')}
               className={errors.password ? 'border-red-500' : ''}
             />

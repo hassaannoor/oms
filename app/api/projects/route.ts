@@ -11,7 +11,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-//   try {
+  try {
     const body = await request.json()
     const project = await prisma.project.create({
       data: {
@@ -19,24 +19,21 @@ export async function POST(request: Request) {
         description: body.description,
         budget: body.budget,
         status: body.status,
-        // managerId: body.managerId,
         manager: body.managerId ? {
-            connect: body.managerId
+          connect: { id: body.managerId }
         } : undefined,
-        // clientId: body.clientId,
         client: body.clientId ? {
-            connect: body.clientId
+          connect: { id: body.clientId }
         } : undefined,
-        // departmentId: body.departmentId,
         department: body.departmentId ? {
-            connect: body.departmentId
+          connect: { id: body.departmentId }
         } : undefined,
         paymentMade: body.paymentMade,
       }
     })
     return NextResponse.json(project)
-//   } catch (error) {
-//     return NextResponse.json({ error: 'Error creating project' }, { status: 500 })
-//   }
+  } catch (error) {
+    return NextResponse.json({ error: 'Error creating project' }, { status: 500 })
+  }
 }
 

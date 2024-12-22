@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import Loading from '@/components/Loading'
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
@@ -17,7 +18,7 @@ export default function Dashboard() {
   }, [status, router])
 
   if (status === 'loading') {
-    return <div>Loading...</div>
+    return <Loading/>
   }
 
   if (status === 'unauthenticated') {

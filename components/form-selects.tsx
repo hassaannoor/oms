@@ -13,6 +13,7 @@ interface ClientSelectProps {
   
 interface DepartmentSelectProps {
   departments: Department[];
+  selectedDepartmentId: string;
   onChange?: (value: string) => void;
 }
 
@@ -69,11 +70,11 @@ export function ClientSelect({ clients, onChange }: ClientSelectProps) {
         </div>)
 }
 
-export function DepartmentSelect({ departments, onChange }: DepartmentSelectProps) {
+export function DepartmentSelect({ departments, selectedDepartmentId, onChange }: DepartmentSelectProps) {
   return (
     <div>
       <Label htmlFor="departmentId">Department</Label>
-      <Select name="departmentId" onValueChange={onChange}>
+      <Select name="departmentId" value={selectedDepartmentId} onValueChange={onChange}>
         <SelectTrigger>
           <SelectValue placeholder="Select department" />
         </SelectTrigger>

@@ -1,5 +1,6 @@
 'use client'
 
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { SessionProvider } from 'next-auth/react'
 // import { Inter } from 'next/font/google';
@@ -12,6 +13,7 @@ import { SessionProvider } from 'next-auth/react'
 //   title: 'OMS',
 //   description: 'Office Management System',
 // };
+const inter = Inter({ subsets: ['latin'] })
 
 export default function RootLayout({
   children,
@@ -38,7 +40,8 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body>
+      {/* <body className={inter.className + " flex h-screen justify-center items-center flex-col bg-gray-50"}> */}
+      <body className={inter.className}>
         {/* <LoadingProvider>
           <LoadingOverlay /> */}
           <SessionProvider>

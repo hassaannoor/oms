@@ -1,5 +1,6 @@
 'use client'
 
+import '../globals.css'
 import { useState, useEffect } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -21,6 +22,12 @@ export default function LoginPage() {
     }
   }, [status, router])
 
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      setError('Please log in to access the dashboard.')
+    }
+  }, [status])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -37,24 +44,39 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Label htmlFor="username">Username</Label>
-      <Input
-        id="username"
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <Label htmlFor="password">Password</Label>
-      <Input
-        id="password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      {error && <p>{error}</p>}
-      <Button type="submit">Sign In</Button>
-      <Link href="/register">Register</Link>
-    </form>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h2 className='text-xl font-bold mb-4 text-center'>Login</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className='mb-4'
+            />
+          </div>
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className='mb-4'
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <Button className='w-full' type="submit">Sign In</Button>
+        </form>
+        <div className="mt-4 text-center">
+          <Button variant="outline" className="w-full">
+            <Link href="/signup" className="">Register</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }

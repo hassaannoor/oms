@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Client, Department, Member, Project } from '@/types'
+import { useState, useEffect, useCallback } from 'react'
+import { Client, Department, Member, Project, ProjectEmployee } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -21,6 +21,90 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ManagerSelect, DepartmentSelect, ClientSelect } from '@/components/form-selects'
+import React from 'react';
+
+const ProjectForm = React.memo(({ onSubmit, isEdit = false, departments, members, clients, formData, handleInputChange }) => {
+  return (
+    <form onSubmit={(e) => onSubmit(e, isEdit)} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Project Name</Label>
+        <Input
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleInputChange}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Input
+          id="description"
+          name="description"
+          value={formData.description}
+          onChange={handleInputChange}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="status">Status</Label>
+        <Select
+          name="status"
+          value={formData.status}
+          onValueChange={(value) => handleInputChange({ target: { name: 'status', value } })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="COMPLETED">Completed</SelectItem>
+            <SelectItem value="ON_HOLD">On Hold</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="budget">Budget</Label>
+        <Input
+          id="budget"
+          name="budget"
+          type="number"
+          value={formData.budget}
+          onChange={(e) => handleInputChange({
+            target: { name: 'budget', value: parseFloat(e.target.value) || 0 }
+          })}
+          required
+        />
+      </div>
+      <ManagerSelect 
+        members={members} 
+        selectedManagerId={formData.managerId} 
+        onChange={(value) => handleInputChange({ target: { name: 'managerId', value } })} 
+      />
+      <ClientSelect 
+        clients={clients} 
+        selectedClientId={formData.clientId} 
+        onChange={(value) => handleInputChange({ target: { name: 'clientId', value } })} 
+      />
+      <DepartmentSelect 
+        departments={departments} 
+        selectedDepartmentId={formData.departmentId} 
+        onChange={(value) => handleInputChange({ target: { name: 'departmentId', value } })} 
+      />
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="paymentMade"
+          name="paymentMade"
+          checked={formData.paymentMade}
+          onChange={handleInputChange}
+        />
+        <Label htmlFor="paymentMade">Payment Made</Label>
+      </div>
+      <Button type="submit">{isEdit ? 'Update' : 'Create'} Project</Button>
+    </form>
+  );
+});
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -41,6 +125,7 @@ export default function ProjectsPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const [projectEmployees, setProjectEmployees] = useState<ProjectEmployee[]>([])
 
   useEffect(() => {
     fetchProjects()
@@ -74,57 +159,44 @@ export default function ProjectsPage() {
     setClients(data)
   }
 
-  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const htmlFormData = new FormData(e.currentTarget);
-    const newProject = {
-      name: htmlFormData.get('name'),
-      status: htmlFormData.get('status'),
-      budget: parseFloat(htmlFormData.get('budget') as string),
-      paymentMade: htmlFormData.get('paymentMade') === 'true',
-      description: htmlFormData.get('description'),
-      managerId: htmlFormData.get('managerId'),
-    }
-    // setFormData(newProject);
-    try {
-      const res = await fetch('/api/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newProject),
-      })
-      if (res.ok) {
-        setIsCreateOpen(false)
-        setFormData({ name: '', status: 'PLANNING', budget: 0, paymentMade: false, description: '', managerId: '', clientId: '', departmentId: '' })
-        fetchProjects()
-      }
-    } catch (error) {
-      console.error('Error creating project:', error)
-    }
+  const fetchProjectEmployees = async (projectId: string) => {
+    const res = await fetch(`/api/projects/${projectId}/employees`)
+    const data = await res.json()
+    setProjectEmployees(data)
   }
 
-  const handleEdit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>, isEdit: boolean) => {
     e.preventDefault()
-    if (!currentProject) return
+    const method = isEdit ? 'PUT' : 'POST';
+    const url = isEdit ? `/api/projects/${currentProject?.id}` : '/api/projects';
 
     try {
-      const res = await fetch(`/api/projects/${currentProject.id}`, {
-        method: 'PUT',
+      const res = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       })
       if (res.ok) {
+        setIsCreateOpen(false)
         setIsEditOpen(false)
         setCurrentProject(null)
+        setFormData({ name: '', status: 'PLANNING', budget: 0, paymentMade: false, description: '', managerId: '', clientId: '', departmentId: '' })
         fetchProjects()
       }
     } catch (error) {
-      console.error('Error updating project:', error)
+      console.error(`Error ${isEdit ? 'updating' : 'creating'} project:`, error)
     }
   }
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this project?')) return
@@ -138,6 +210,28 @@ export default function ProjectsPage() {
       }
     } catch (error) {
       console.error('Error deleting project:', error)
+    }
+  }
+
+  const handleAssignEmployee = async (employeeId: string) => {
+    const res = await fetch(`/api/projects/${currentProject?.id}/employees`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ employeeId }),
+    })
+    if (res.ok) {
+      fetchProjectEmployees(currentProject?.id)
+    }
+  }
+
+  const handleRemoveEmployee = async (employeeId: string) => {
+    const res = await fetch(`/api/projects/${currentProject?.id}/employees/${employeeId}`, {
+      method: 'DELETE',
+    })
+    if (res.ok) {
+      fetchProjectEmployees(currentProject?.id)
     }
   }
 
@@ -156,95 +250,6 @@ export default function ProjectsPage() {
     setIsEditOpen(true)
   }
 
-  const ProjectForm = ({ onSubmit, isEdit = false, departments, members, clients }: { onSubmit: (e: React.FormEvent<HTMLFormElement>) => void, isEdit?: boolean, departments: Department[], members: Member[], clients: Client[] }) => {
-    const [formData, setFormData] = useState({
-      name: '',
-      status: 'PLANNING',
-      budget: 0,
-      paymentMade: false,
-      description: '',
-      managerId: '',
-      clientId: '',
-      departmentId: ''
-    });
-
-    // const handleDepartmentChange = (value: string) => {
-    //   setFormData(prev => ({ ...prev, departmentId: value }));
-    // };
-
-    // const handleManagerChange = (value: string) => {
-    //   setFormData(prev => ({ ...prev, managerId: value }));
-    // };
-
-    // const handleClientChange = (value: string) => {
-    //   setFormData(prev => ({ ...prev, clientId: value }));
-    // };
-
-    return (
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="name">Project Name</Label>
-          <Input
-            id="name"
-            name="name"
-            defaultValue={formData.name}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="description">Description</Label>
-          <Input
-            id="description"
-            name="description"
-            defaultValue={formData.description}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="status">Status</Label>
-          <Select
-            name="status"
-            defaultValue={formData.status}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-              <SelectItem value="ON_HOLD">On Hold</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="budget">Budget</Label>
-          <Input
-            id="budget"
-            name="budget"
-            type="number"
-            defaultValue={formData.budget}
-            required
-          />
-        </div>
-        <ManagerSelect members={members}  />
-        <ClientSelect clients={clients}  />
-        <DepartmentSelect departments={departments} 
-        // onChange={handleDepartmentChange} 
-        />
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="paymentMade"
-            name="paymentMade"
-            defaultChecked={formData.paymentMade}
-          />
-          <Label htmlFor="paymentMade">Payment Made</Label>
-        </div>
-        <Button type="submit">{isEdit ? 'Update' : 'Create'} Project</Button>
-      </form>
-    );
-  }
-
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -257,7 +262,14 @@ export default function ProjectsPage() {
             <DialogHeader>
               <DialogTitle>Create New Project</DialogTitle>
             </DialogHeader>
-            <ProjectForm onSubmit={handleCreate} departments={departments} members={members} clients={clients} />
+            <ProjectForm 
+              onSubmit={handleFormSubmit} 
+              departments={departments} 
+              members={members} 
+              clients={clients} 
+              formData={formData} 
+              handleInputChange={handleInputChange} 
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -291,9 +303,30 @@ export default function ProjectsPage() {
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
           </DialogHeader>
-          <ProjectForm onSubmit={handleEdit} isEdit={isEditOpen} departments={departments} members={members} clients={[]} />
+          <ProjectForm 
+            onSubmit={handleFormSubmit} 
+            isEdit={isEditOpen} 
+            departments={departments} 
+            members={members} 
+            clients={clients} 
+            formData={formData} 
+            handleInputChange={handleInputChange} 
+          />
         </DialogContent>
       </Dialog>
+
+      <div>
+        <h2 className="text-xl font-bold">Assigned Employees</h2>
+        <ul>
+          {projectEmployees.map(employee => (
+            <li key={employee.id}>
+              {employee.name} 
+              <Button variant="destructive" onClick={() => handleRemoveEmployee(employee.id)}>Remove</Button>
+            </li>
+          ))}
+        </ul>
+        <Button onClick={() => handleAssignEmployee(selectedEmployeeId)}>Assign Employee</Button>
+      </div>
     </div>
   )
 }
