@@ -23,7 +23,49 @@ import {
 import { ManagerSelect, DepartmentSelect, ClientSelect } from '@/components/form-selects'
 import React from 'react';
 
-const ProjectForm = React.memo(({ onSubmit, isEdit = false, departments, members, clients, formData, handleInputChange }) => {
+const EmployeeSelectDialog = ({ open, onClose, employees, assignedEmployees, handleAssignEmployee }) => {
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>(assignedEmployees.map(emp => emp.id));
+
+  const toggleEmployeeSelection = (employeeId: string) => {
+    setSelectedEmployees(prev => 
+      prev.includes(employeeId) ? prev.filter(id => id !== employeeId) : [...prev, employeeId]
+    );
+  };
+
+  const handleSave = () => {
+    selectedEmployees.forEach(employeeId => handleAssignEmployee(employeeId));
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Select Employees</DialogTitle>
+        </DialogHeader>
+        <ul>
+          {employees.map(employee => (
+            <li key={employee.id}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={selectedEmployees.includes(employee.id)}
+                  onChange={() => toggleEmployeeSelection(employee.id)}
+                />
+                {employee.name}
+              </label>
+            </li>
+          ))}
+        </ul>
+        <Button onClick={handleSave}>Save</Button>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const ProjectForm = React.memo(({ onSubmit, isEdit = false, departments, members, clients, formData, handleInputChange, projectEmployees, handleAssignEmployee, handleRemoveEmployee }) => {
+  const [isEmployeeSelectOpen, setIsEmployeeSelectOpen] = useState(false);
+
   return (
     <form onSubmit={(e) => onSubmit(e, isEdit)} className="space-y-4">
       <div>
@@ -101,6 +143,28 @@ const ProjectForm = React.memo(({ onSubmit, isEdit = false, departments, members
         />
         <Label htmlFor="paymentMade">Payment Made</Label>
       </div>
+
+        <div className='mt-4'>
+            <h2 className="text-xl font-bold">Assigned Employees</h2>
+            <ul>
+            {projectEmployees.map(employee => (
+                <li key={employee.id}>
+                {employee.name} 
+                <Button variant="destructive" onClick={() => handleRemoveEmployee(employee.id)}>Remove</Button>
+                </li>
+            ))}
+            </ul>
+            <Button onClick={(ev) => {ev.preventDefault(); setIsEmployeeSelectOpen(true)}}>Assign Employee</Button>
+        </div>
+
+      <EmployeeSelectDialog 
+        open={isEmployeeSelectOpen} 
+        onClose={() => setIsEmployeeSelectOpen(false)} 
+        employees={members} 
+        assignedEmployees={projectEmployees} 
+        handleAssignEmployee={handleAssignEmployee} 
+      />
+
       <Button type="submit">{isEdit ? 'Update' : 'Create'} Project</Button>
     </form>
   );
@@ -126,6 +190,7 @@ export default function ProjectsPage() {
   const [departments, setDepartments] = useState<Department[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [projectEmployees, setProjectEmployees] = useState<ProjectEmployee[]>([])
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchProjects()
@@ -269,6 +334,9 @@ export default function ProjectsPage() {
               clients={clients} 
               formData={formData} 
               handleInputChange={handleInputChange} 
+              projectEmployees={projectEmployees} 
+              handleAssignEmployee={handleAssignEmployee} 
+              handleRemoveEmployee={handleRemoveEmployee} 
             />
           </DialogContent>
         </Dialog>
@@ -311,22 +379,14 @@ export default function ProjectsPage() {
             clients={clients} 
             formData={formData} 
             handleInputChange={handleInputChange} 
+            projectEmployees={projectEmployees} 
+            handleAssignEmployee={handleAssignEmployee} 
+            handleRemoveEmployee={handleRemoveEmployee} 
           />
         </DialogContent>
       </Dialog>
 
-      <div className='mt-4'>
-        <h2 className="text-xl font-bold">Assigned Employees</h2>
-        <ul>
-          {projectEmployees.map(employee => (
-            <li key={employee.id}>
-              {employee.name} 
-              <Button variant="destructive" onClick={() => handleRemoveEmployee(employee.id)}>Remove</Button>
-            </li>
-          ))}
-        </ul>
-        <Button onClick={() => handleAssignEmployee(selectedEmployeeId)}>Assign Employee</Button>
-      </div>
+      
     </div>
   )
 }
