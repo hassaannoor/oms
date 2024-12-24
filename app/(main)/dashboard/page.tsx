@@ -11,18 +11,22 @@ export default function Dashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
-  }, [status, router])
+//   useEffect(() => {
+//     if (status === 'unauthenticated') {
+//       router.push('/login')
+//     }
+//   }, [status, router])
 
   if (status === 'loading') {
     return <Loading/>
   }
 
   if (status === 'unauthenticated') {
-    return null
+    return (
+        <Link href="/login">
+          <Button className="w-full">Please Login</Button>
+        </Link>
+    )
   }
 
   return (

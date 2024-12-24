@@ -315,7 +315,7 @@ export default function ProjectsPage() {
         </DialogContent>
       </Dialog>
 
-      <div>
+      <div className='mt-4'>
         <h2 className="text-xl font-bold">Assigned Employees</h2>
         <ul>
           {projectEmployees.map(employee => (
