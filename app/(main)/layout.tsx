@@ -10,14 +10,12 @@ export const metadata = {
   description: 'Efficient office management solution',
 }
 
-export default function RootLayout({
+export default function MainRootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
         <div className="flex">
           <div className="w-64"></div>
           <aside className="w-64 bg-gray-800 text-white h-screen fixed">
@@ -59,8 +57,6 @@ export default function RootLayout({
             <Providers>{children}</Providers>
           </main>
         </div>
-      </body>
-    </html>
   )
 }
 

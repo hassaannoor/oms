@@ -2,7 +2,7 @@
 
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { SessionProvider } from 'next-auth/react'
+import { Providers } from './providers'
 // import { Inter } from 'next/font/google';
 // import { useRouter } from 'next/navigation';
 // import { useEffect } from 'react';
@@ -44,9 +44,7 @@ export default function RootLayout({
       <body className={inter.className}>
         {/* <LoadingProvider>
           <LoadingOverlay /> */}
-          <SessionProvider>
-            {children}
-          </SessionProvider>
+           <Providers>{children}</Providers>
         {/* </LoadingProvider> */}
       </body>
     </html>
