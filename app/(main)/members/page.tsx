@@ -170,40 +170,38 @@ export default function MembersPage() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {members.map(member => (
-          <Card key={member.id}>
-            <CardHeader>
-              <CardTitle>{member.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Email: {member.email}</p>
-              <p>Phone: {member.phoneNo}</p>
-              <p>Position: {member.memberType}</p>
-              <p>Salary: ${member.salary.toLocaleString()}</p>
-              <p>CNIC: {member.cnic}</p>
-              <p>Hire Date: {new Date(member.hireDate).toLocaleDateString()}</p>
-              <div className="flex gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setCurrentMember(member)
-                    setIsEditing(true)
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button 
-                  variant="destructive"
-                  onClick={() => handleDelete(member.id)}
-                >
-                  Delete
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <DataTable data={members} columns={[
+        { accessor: 'name', header: 'Name' },
+        { accessor: 'email', header: 'Email' },
+        { accessor: 'phoneNo', header: 'Phone Number' },
+        { accessor: 'memberType', header: 'Position' },
+        { accessor: 'salary', header: 'Salary', cell: row => `$${row.salary.toLocaleString()}` },
+        { accessor: 'cnic', header: 'CNIC' },
+        { accessor: 'hireDate', header: 'Hire Date', cell: row => new Date(row.hireDate).toLocaleDateString() },
+        {
+          accessor: 'actions',
+          header: 'Actions',
+          cell: row => (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setCurrentMember(row)
+                  setIsEditing(true)
+                }}
+              >
+                Edit
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={() => handleDelete(row.id)}
+              >
+                Delete
+              </Button>
+            </div>
+          )
+        }
+      ]} />
     </div>
   )
 }

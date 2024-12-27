@@ -5,9 +5,9 @@ export async function GET() {
 //   try {
     const departments = await prisma.department.findMany({
       include: {
-        // head: true,
-        // branch: true,
-        // projects: true
+        head: true,
+        branch: true,
+        projects: true
       }
     })
     return NextResponse.json(departments)

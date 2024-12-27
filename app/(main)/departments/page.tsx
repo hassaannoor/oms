@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -137,9 +138,13 @@ export default function DepartmentsPage() {
         {departments.map(department => (
           <div key={department.id} className="border p-4 rounded">
             <h2 className="font-bold">{department.name}</h2>
-            <p>Phone: {department.phoneNo}</p>
-            <p>Head ID: {department.headId}</p>
-            <p>Branch ID: {department.branchId}</p>
+            <p>Head: {department.head.name}</p>
+            <p>Branch: {department.branch.name}</p>
+            <p>Phone: {department.phoneNo ?? "(not available)"}</p>
+            <p className="text-xl font-bold">Projects</p>
+            {department.projects.map((project, i) => (
+                <p className="whitespace-nowrap"><span className="font-bold text-sm ">{i+1}.</span> <Link className="text-sm text-ellipsis" href="/projects">{project.name}</Link></p>
+            ))}
             <div className="flex gap-2 mt-4">
               <Button variant="outline" onClick={() => handleEdit(department)}>
                 Edit

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 export default function BranchesPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -160,7 +161,7 @@ export default function BranchesPage() {
             <p>Phone: {branch.phoneNo}</p>
             <p>Country: {branch.country}</p>
             <p>City: {branch.city}</p>
-            <p>Head ID: {branch.headId}</p>
+            <p>Head: <Link href={"/members/" + branch.headId}>{branch.head.name}</Link></p>
             <div className="flex gap-2 mt-4">
               <Button variant="outline" onClick={() => handleEdit(branch)}>
                 Edit
