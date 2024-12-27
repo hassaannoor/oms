@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { employeeId } = await request.json()
     const projectEmployee = await prisma.projectEmployee.create({
@@ -21,8 +19,14 @@ export async function POST(
 
 export async function DELETE(
   request: Request,
-  { params, employeeId }: { params: { id: string }, employeeId: string }
+  props: { params: Promise<{ id: string, empid: string }> }
 ) {
+  const params = await props.params;
+
+  const {
+    empid: employeeId
+  } = params;
+
   try {
     await prisma.projectEmployee.delete({
       where: {

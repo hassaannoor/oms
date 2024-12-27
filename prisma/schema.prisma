@@ -31,8 +31,8 @@ model Member {
   
   // Employee specific relations
   projectsWorkedOn ProjectEmployee[]
-  managerAssigned Member?         @relation("EmployeeToManager", fields: [managerId], references: [id])
   managerId       String?
+  managerAssigned Member?         @relation("EmployeeToManager", fields: [managerId], references: [id])
 
   // Manager specific relations
   managedEmployees Member[]        @relation("EmployeeToManager")
@@ -51,7 +51,7 @@ model Member {
 model Project {
   id          String    @id @default(cuid())
   name        String
-  description String
+  description String?
   budget      Float
   status      String    // "ACTIVE" | "COMPLETED" | "ON_HOLD"
   managerId   String
@@ -113,10 +113,10 @@ model Client {
   id          String    @id @default(cuid())
   name        String
   signDate    DateTime  @default(now())
-  netWorth    Float
-  phoneNo     String
-  email       String    @unique
-  address     String
+  netWorth    Float?
+  phoneNo     String?
+  email       String?    @unique
+  address     String?
   projects    Project[]
 }
 

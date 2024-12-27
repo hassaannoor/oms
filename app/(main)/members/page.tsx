@@ -153,7 +153,7 @@ export default function MembersPage() {
               {!currentMember && (
                 <div>
                   <Label htmlFor="password">Password</Label>
-                  <Input id="password" name="password" type="password" required />
+                  <Input id="password" name="password" type="text" required />
                 </div>
               )}
               <ManagerSelect members={members}/>
@@ -170,38 +170,40 @@ export default function MembersPage() {
         </Dialog>
       </div>
 
-      <DataTable data={members} columns={[
-        { accessor: 'name', header: 'Name' },
-        { accessor: 'email', header: 'Email' },
-        { accessor: 'phoneNo', header: 'Phone Number' },
-        { accessor: 'memberType', header: 'Position' },
-        { accessor: 'salary', header: 'Salary', cell: row => `$${row.salary.toLocaleString()}` },
-        { accessor: 'cnic', header: 'CNIC' },
-        { accessor: 'hireDate', header: 'Hire Date', cell: row => new Date(row.hireDate).toLocaleDateString() },
-        {
-          accessor: 'actions',
-          header: 'Actions',
-          cell: row => (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setCurrentMember(row)
-                  setIsEditing(true)
-                }}
-              >
-                Edit
-              </Button>
-              <Button 
-                variant="destructive"
-                onClick={() => handleDelete(row.id)}
-              >
-                Delete
-              </Button>
-            </div>
-          )
-        }
-      ]} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        {members.map(member => (
+          <Card key={member.id}>
+            <CardHeader>
+              <CardTitle>{member.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Email: {member.email}</p>
+              <p>Phone: {member.phoneNo}</p>
+              <p>Position: <span className={`rounded px-1 ${member.memberType === 'CEO' ? 'bg-red-200' : member.memberType === 'DEPT_HEAD' ? 'bg-blue-200' : member.memberType === 'BRANCH_HEAD' ? 'bg-green-200' : member.memberType === 'MANAGER' ? 'bg-yellow-200' : 'bg-purple-200'}`}>{member.memberType}</span></p>
+              <p>Salary: ${member.salary.toLocaleString()}</p>
+              <p>CNIC: {member.cnic}</p>
+              <p>Hire Date: {new Date(member.hireDate).toLocaleDateString()}</p>
+              <div className="flex gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentMember(member)
+                    setIsEditing(true)
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => handleDelete(member.id)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }

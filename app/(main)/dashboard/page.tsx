@@ -32,7 +32,7 @@ export default function Dashboard() {
   return (
     <div className="p-6">
       <h1 className="mb-6 text-3xl font-bold">Dashboard</h1>
-      <p className="mb-4">Welcome, {session?.user?.name || 'User'}!</p>
+      <p className="mb-4">Welcome, {session?.user?.name || session?.user?.role || 'User'}!</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Link href="/members">
           <Button className="w-full">Manage Members</Button>

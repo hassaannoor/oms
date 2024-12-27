@@ -67,7 +67,7 @@ const ProjectForm = React.memo(({ onSubmit, isEdit = false, departments, members
   const [isEmployeeSelectOpen, setIsEmployeeSelectOpen] = useState(false);
 
   return (
-    <form onSubmit={(e) => onSubmit(e, isEdit)} className="space-y-4">
+    <form onSubmit={(e) => onSubmit(e, isEdit)} className="space-y-4 max-h-[90vh] overflow-y-auto">
       <div>
         <Label htmlFor="name">Project Name</Label>
         <Input
@@ -105,18 +105,33 @@ const ProjectForm = React.memo(({ onSubmit, isEdit = false, departments, members
           </SelectContent>
         </Select>
       </div>
-      <div>
-        <Label htmlFor="budget">Budget</Label>
-        <Input
-          id="budget"
-          name="budget"
-          type="number"
-          value={formData.budget}
-          onChange={(e) => handleInputChange({
-            target: { name: 'budget', value: parseFloat(e.target.value) || 0 }
-          })}
-          required
-        />
+      <div className='flex gap-4'>
+        <div>
+            <Label htmlFor="budget">Budget</Label>
+            <Input
+            id="budget"
+            name="budget"
+            type="number"
+            value={formData.budget}
+            onChange={(e) => handleInputChange({
+                target: { name: 'budget', value: parseFloat(e.target.value) || 0 }
+            })}
+            required
+            />
+        </div>
+        <div>
+            <Label className="mr-4" htmlFor="paymentMade">Payment Made</Label>
+            <div className={(formData.paymentMade ? "bg-green-200" : "bg-gray-300") + " py-2 w-10 h-10 flex justify-center items-center"}>
+                <input
+                className="scale-150 block w-10"
+                type="checkbox"
+                id="paymentMade"
+                name="paymentMade"
+                checked={formData.paymentMade}
+                onChange={handleInputChange}
+                />
+            </div>
+        </div>
       </div>
       <ManagerSelect 
         members={members} 
@@ -133,24 +148,14 @@ const ProjectForm = React.memo(({ onSubmit, isEdit = false, departments, members
         selectedDepartmentId={formData.departmentId} 
         onChange={(value) => handleInputChange({ target: { name: 'departmentId', value } })} 
       />
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          id="paymentMade"
-          name="paymentMade"
-          checked={formData.paymentMade}
-          onChange={handleInputChange}
-        />
-        <Label htmlFor="paymentMade">Payment Made</Label>
-      </div>
 
-        <div className='mt-4'>
+        <div className='mt-6'>
             <h2 className="text-xl font-bold">Assigned Employees</h2>
-            <ul>
-            {projectEmployees.map(employee => (
-                <li key={employee.id}>
-                {employee.name} 
-                <Button variant="destructive" onClick={() => handleRemoveEmployee(employee.id)}>Remove</Button>
+            <ul className="w-full">
+            {projectEmployees.map(projectEmp => (
+                <li key={projectEmp.id} className="w-full mb-0.5 border-b flex justify-around">
+                <span className="mr-auto">{projectEmp.employee.name} </span>
+                <Button variant="destructive" onClick={(ev) => {ev.preventDefault(); handleRemoveEmployee(projectEmp.employee.id)}}>Remove</Button>
                 </li>
             ))}
             </ul>
@@ -161,7 +166,7 @@ const ProjectForm = React.memo(({ onSubmit, isEdit = false, departments, members
         open={isEmployeeSelectOpen} 
         onClose={() => setIsEmployeeSelectOpen(false)} 
         employees={members} 
-        assignedEmployees={projectEmployees} 
+        assignedEmployees={projectEmployees.map(projectEmp => projectEmp.employee)} 
         handleAssignEmployee={handleAssignEmployee} 
       />
 
@@ -312,7 +317,9 @@ export default function ProjectsPage() {
       clientId: project.clientId,
       departmentId: project.departmentId
     })
-    setIsEditOpen(true)
+    fetchProjectEmployees(project.id).then(() => {
+        setIsEditOpen(true)
+    })
   }
 
   return (

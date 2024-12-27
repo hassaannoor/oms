@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { employeeId } = await request.json(); // Expecting a single employee ID
 
@@ -15,7 +13,10 @@ export async function POST(
           projectId: params.id,
           employeeId,
         },
-      },
+    },
+      include: {
+        employee: true
+      }
     });
 
     // If it doesn't exist, create a new assignment
@@ -28,15 +29,14 @@ export async function POST(
       });
       return NextResponse.json(projectEmployee);
     } else {
-      return NextResponse.json({ message: 'Employee is already assigned to this project.' }, { status: 409 });
+      return NextResponse.json(existingAssignment);
     }
   } catch (error) {
     return NextResponse.json({ error: 'Error assigning employee' }, { status: 500 });
   }
 }
-export async function GET(
-    { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
     const projectEmployees = await prisma.projectEmployee.findMany({
         where: { projectId: params.id },
         include: { employee: true }, // Include employee details if needed

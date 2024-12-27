@@ -1,26 +1,31 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { Department } from '@/types'; // Adjust the import based on your types
+import { Department, Member, Branch } from '@/types'; // Adjust the import based on your types
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
+import { DepartmentHeadSelect, BranchSelect } from '@/components/form-selects';
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [departmentHeads, setDepartmentHeads] = useState<Member[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentDepartment, setCurrentDepartment] = useState<Department | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     phoneNo: '',
     headId: '',
-    branchId: '', // Assuming you have a branchId field
+    branchId: '',
   });
 
   useEffect(() => {
     fetchDepartments();
+    fetchDepartmentHeads();
+    fetchBranches();
   }, []);
 
   const fetchDepartments = async () => {
@@ -28,6 +33,20 @@ export default function DepartmentsPage() {
     const data = await res.json();
     if (data.length) 
         setDepartments(data);
+  };
+
+  const fetchDepartmentHeads = async () => {
+    const res = await fetch('/api/members?memberType=DEPT_HEAD');
+    const data = await res.json();
+    if (data.length) 
+        setDepartmentHeads(data);
+  };
+
+  const fetchBranches = async () => {
+    const res = await fetch('/api/branches');
+    const data = await res.json();
+    if (data.length) 
+        setBranches(data);
   };
 
   const handleCreateOrUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -98,29 +117,21 @@ export default function DepartmentsPage() {
                 <Input
                   id="phoneNo"
                   name="phoneNo"
-                  required
                   value={formData.phoneNo}
                   onChange={(e) => setFormData({ ...formData, phoneNo: e.target.value })}
                 />
               </div>
               <div>
-                <Label htmlFor="headId">Head ID</Label>
-                <Input
-                  id="headId"
-                  name="headId"
-                  required
-                  value={formData.headId}
-                  onChange={(e) => setFormData({ ...formData, headId: e.target.value })}
+                <DepartmentHeadSelect 
+                  departmentHeads={departmentHeads}
+                  onChange={(value) => setFormData({ ...formData, headId: value })} 
                 />
               </div>
               <div>
-                <Label htmlFor="branchId">Branch ID</Label>
-                <Input
-                  id="branchId"
-                  name="branchId"
-                  required
-                  value={formData.branchId}
-                  onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
+                <BranchSelect 
+                  branches={branches}
+                  selectedBranchId={formData.branchId}
+                  onChange={(value) => setFormData({ ...formData, branchId: value })} 
                 />
               </div>
               <div className="flex justify-end gap-2">

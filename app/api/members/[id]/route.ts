@@ -58,10 +58,8 @@ export async function PUT(
 //   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Ensure params.id exists
     if (!params?.id) {
