@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useSession } from 'next-auth/react'; // Import useSession from next-auth
 
 export default function ClientsPage() {
+  const { data: session } = useSession(); // Get session data
   const [clients, setClients] = useState<Client[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
@@ -86,87 +88,89 @@ export default function ClientsPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Clients</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Client</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{currentClient ? 'Edit' : 'Add'} Client</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateOrUpdate} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="signDate">Sign Date</Label>
-                <Input
-                  id="signDate"
-                  name="signDate"
-                  type="date"
-                  required
-                  value={formData.signDate}
-                  onChange={(e) => setFormData({ ...formData, signDate: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="netWorth">Net Worth</Label>
-                <Input
-                  id="netWorth"
-                  name="netWorth"
-                  type="number"
-                  required
-                  value={formData.netWorth}
-                  onChange={(e) => setFormData({ ...formData, netWorth: parseFloat(e.target.value) })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="phoneNo">Phone Number</Label>
-                <Input
-                  id="phoneNo"
-                  name="phoneNo"
-                  required
-                  value={formData.phoneNo}
-                  onChange={(e) => setFormData({ ...formData, phoneNo: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  required
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">{currentClient ? 'Update' : 'Create'} Client</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {session?.user?.role === 'CEO' && ( // Only show the Add Client button for CEO
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Add Client</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{currentClient ? 'Edit' : 'Add'} Client</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateOrUpdate} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="signDate">Sign Date</Label>
+                  <Input
+                    id="signDate"
+                    name="signDate"
+                    type="date"
+                    required
+                    value={formData.signDate}
+                    onChange={(e) => setFormData({ ...formData, signDate: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="netWorth">Net Worth</Label>
+                  <Input
+                    id="netWorth"
+                    name="netWorth"
+                    type="number"
+                    required
+                    value={formData.netWorth}
+                    onChange={(e) => setFormData({ ...formData, netWorth: parseFloat(e.target.value) })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phoneNo">Phone Number</Label>
+                  <Input
+                    id="phoneNo"
+                    name="phoneNo"
+                    required
+                    value={formData.phoneNo}
+                    onChange={(e) => setFormData({ ...formData, phoneNo: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    name="address"
+                    required
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">{currentClient ? 'Update' : 'Create'} Client</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -179,12 +183,16 @@ export default function ClientsPage() {
             <p>Email: {client.email}</p>
             <p>Address: {client.address}</p>
             <div className="flex gap-2 mt-4">
-              <Button variant="outline" onClick={() => handleEdit(client)}>
-                Edit
-              </Button>
-              <Button variant="destructive" onClick={() => handleDelete(client.id)}>
-                Delete
-              </Button>
+              {session?.user?.role === 'CEO' && ( // Only show Edit button for CEO
+                <Button variant="outline" onClick={() => handleEdit(client)}>
+                  Edit
+                </Button>
+              )}
+              {session?.user?.role === 'CEO' && ( // Only show Delete button for CEO
+                <Button variant="destructive" onClick={() => handleDelete(client.id)}>
+                  Delete
+                </Button>
+              )}
             </div>
           </div>
         ))}

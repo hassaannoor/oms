@@ -15,8 +15,30 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ManagerSelect } from '@/components/form-selects'
+import { useSession } from 'next-auth/react'
 
 export default function MembersPage() {
+  const { data: session } = useSession()
+  const userRole = session?.user?.role
+
+  const positionHierarchy = {
+    CEO: 5,
+    BRANCH_HEAD: 4,
+    DEPT_HEAD: 3,
+    MANAGER: 2,
+    EMPLOYEE: 1,
+  }
+
+  const canSeeSensitiveInfo = (memberRole: string) => {
+    return positionHierarchy[userRole] > positionHierarchy[memberRole]
+  }
+
+  const getAvailablePositions = () => {
+    return Object.keys(positionHierarchy).filter(role => 
+      positionHierarchy[role] < positionHierarchy[userRole]
+    )
+  }
+
   const [members, setMembers] = useState<Member[]>([])
   const [isEditing, setIsEditing] = useState(false)
   const [currentMember, setCurrentMember] = useState<Member | null>(null)
@@ -124,17 +146,31 @@ export default function MembersPage() {
                 <Label htmlFor="cnic">CNIC</Label>
                 <Input id="cnic" name="cnic" required defaultValue={currentMember?.cnic} />
               </div>
-              <div>
-                <Label htmlFor="salary">Salary</Label>
-                <Input 
-                  id="salary" 
-                  name="salary" 
-                  type="number" 
-                  step="0.01" 
-                  required 
-                  defaultValue={currentMember?.salary} 
-                />
-              </div>
+              {canSeeSensitiveInfo(currentMember?.memberType) && (
+                <>
+                  <div>
+                    <Label htmlFor="salary">Salary</Label>
+                    <Input 
+                      id="salary" 
+                      name="salary" 
+                      type="number" 
+                      step="0.01" 
+                      required 
+                      defaultValue={currentMember?.salary} 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="hireDate">Hire Date</Label>
+                    <Input 
+                      id="hireDate" 
+                      name="hireDate" 
+                      type="date" 
+                      required 
+                      defaultValue={currentMember?.hireDate} 
+                    />
+                  </div>
+                </>
+              )}
               <div>
                 <Label htmlFor="memberType">Position</Label>
                 <Select name="memberType" defaultValue={currentMember?.memberType} required>
@@ -142,11 +178,9 @@ export default function MembersPage() {
                     <SelectValue placeholder="Select position" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="EMPLOYEE">Employee</SelectItem>
-                    <SelectItem value="MANAGER">Manager</SelectItem>
-                    <SelectItem value="DEPT_HEAD">Department Head</SelectItem>
-                    <SelectItem value="BRANCH_HEAD">Branch Head</SelectItem>
-                    <SelectItem value="CEO">CEO</SelectItem>
+                    {getAvailablePositions().map(role => (
+                      <SelectItem key={role} value={role}>{role}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -180,25 +214,33 @@ export default function MembersPage() {
               <p>Email: {member.email}</p>
               <p>Phone: {member.phoneNo}</p>
               <p>Position: <span className={`rounded px-1 ${member.memberType === 'CEO' ? 'bg-red-200' : member.memberType === 'DEPT_HEAD' ? 'bg-blue-200' : member.memberType === 'BRANCH_HEAD' ? 'bg-green-200' : member.memberType === 'MANAGER' ? 'bg-yellow-200' : 'bg-purple-200'}`}>{member.memberType}</span></p>
-              <p>Salary: ${member.salary.toLocaleString()}</p>
-              <p>CNIC: {member.cnic}</p>
-              <p>Hire Date: {new Date(member.hireDate).toLocaleDateString()}</p>
+              {canSeeSensitiveInfo(member.memberType) && (
+                <>
+                  <p>Salary: ${member.salary.toLocaleString()}</p>
+                  <p>CNIC: {member.cnic}</p>
+                  <p>Hire Date: {new Date(member.hireDate).toLocaleDateString()}</p>
+                </>
+              )}
               <div className="flex gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setCurrentMember(member)
-                    setIsEditing(true)
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button 
-                  variant="destructive"
-                  onClick={() => handleDelete(member.id)}
-                >
-                  Delete
-                </Button>
+                {positionHierarchy[userRole] > positionHierarchy[member.memberType] && (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setCurrentMember(member)
+                        setIsEditing(true)
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="destructive"
+                      onClick={() => handleDelete(member.id)}
+                    >
+                      Delete
+                    </Button>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>

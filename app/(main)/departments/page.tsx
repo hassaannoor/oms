@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { DepartmentHeadSelect, BranchSelect } from '@/components/form-selects';
+import { useSession } from 'next-auth/react'; // Import useSession from next-auth
 
 export default function DepartmentsPage() {
+  const { data: session } = useSession(); // Get session data
   const [departments, setDepartments] = useState<Department[]>([]);
   const [departmentHeads, setDepartmentHeads] = useState<Member[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -93,56 +95,58 @@ export default function DepartmentsPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Departments</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Department</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{currentDepartment ? 'Edit' : 'Add'} Department</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateOrUpdate} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Department Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="phoneNo">Phone Number</Label>
-                <Input
-                  id="phoneNo"
-                  name="phoneNo"
-                  value={formData.phoneNo}
-                  onChange={(e) => setFormData({ ...formData, phoneNo: e.target.value })}
-                />
-              </div>
-              <div>
-                <DepartmentHeadSelect 
-                  departmentHeads={departmentHeads}
-                  onChange={(value) => setFormData({ ...formData, headId: value })} 
-                />
-              </div>
-              <div>
-                <BranchSelect 
-                  branches={branches}
-                  selectedBranchId={formData.branchId}
-                  onChange={(value) => setFormData({ ...formData, branchId: value })} 
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">{currentDepartment ? 'Update' : 'Create'} Department</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {(session?.user?.role === 'CEO' || session?.user?.role === 'BRANCH_HEAD') && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Add Department</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{currentDepartment ? 'Edit' : 'Add'} Department</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateOrUpdate} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Department Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phoneNo">Phone Number</Label>
+                  <Input
+                    id="phoneNo"
+                    name="phoneNo"
+                    value={formData.phoneNo}
+                    onChange={(e) => setFormData({ ...formData, phoneNo: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <DepartmentHeadSelect 
+                    departmentHeads={departmentHeads}
+                    onChange={(value) => setFormData({ ...formData, headId: value })} 
+                  />
+                </div>
+                <div>
+                  <BranchSelect 
+                    branches={branches}
+                    selectedBranchId={formData.branchId}
+                    onChange={(value) => setFormData({ ...formData, branchId: value })} 
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">{currentDepartment ? 'Update' : 'Create'} Department</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -154,15 +158,19 @@ export default function DepartmentsPage() {
             <p>Phone: {department.phoneNo ?? "(not available)"}</p>
             <p className="text-xl font-bold">Projects</p>
             {department.projects.map((project, i) => (
-                <p className="whitespace-nowrap"><span className="font-bold text-sm ">{i+1}.</span> <Link className="text-sm text-ellipsis" href="/projects">{project.name}</Link></p>
+              <p className="whitespace-nowrap"><span className="font-bold text-sm ">{i + 1}.</span> <Link className="text-sm text-ellipsis" href="/projects">{project.name}</Link></p>
             ))}
             <div className="flex gap-2 mt-4">
-              <Button variant="outline" onClick={() => handleEdit(department)}>
-                Edit
-              </Button>
-              <Button variant="destructive" onClick={() => handleDelete(department.id)}>
-                Delete
-              </Button>
+              {(session?.user?.role === 'CEO' || session?.user?.role === 'BRANCH_HEAD') && (
+                <Button variant="outline" onClick={() => handleEdit(department)}>
+                  Edit
+                </Button>
+              )}
+              {session?.user?.role === 'CEO' && (
+                <Button variant="destructive" onClick={() => handleDelete(department.id)}>
+                  Delete
+                </Button>
+              )}
             </div>
           </div>
         ))}

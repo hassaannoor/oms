@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select"
 import { ManagerSelect, DepartmentSelect, ClientSelect } from '@/components/form-selects'
 import React from 'react';
+import { useSession } from 'next-auth/react';
 
 const EmployeeSelectDialog = ({ open, onClose, employees, assignedEmployees, handleAssignEmployee }) => {
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>(assignedEmployees.map(emp => emp.id));
@@ -176,6 +177,8 @@ const ProjectForm = React.memo(({ onSubmit, isEdit = false, departments, members
 });
 
 export default function ProjectsPage() {
+  const { data: session } = useSession();
+  const isCEO = session?.user?.role === 'CEO';
   const [projects, setProjects] = useState<Project[]>([])
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -322,31 +325,75 @@ export default function ProjectsPage() {
     })
   }
 
+  const handleEdit = (project: Project) => {
+    setCurrentProject(project)
+    setFormData({
+      name: project.name,
+      status: project.status,
+      budget: project.budget,
+      paymentMade: project.paymentMade,
+      description: project.description,
+      managerId: project.managerId,
+      clientId: project.clientId,
+      departmentId: project.departmentId
+    })
+    fetchProjectEmployees(project.id).then(() => {
+        setIsEditOpen(true)
+    })
+  }
+
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const method = 'POST';
+    const url = '/api/projects';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        setIsCreateOpen(false)
+        setIsEditOpen(false)
+        setCurrentProject(null)
+        setFormData({ name: '', status: 'PLANNING', budget: 0, paymentMade: false, description: '', managerId: '', clientId: '', departmentId: '' })
+        fetchProjects()
+      }
+    } catch (error) {
+      console.error('Error creating project:', error)
+    }
+  }
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Projects</h1>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>Create New Project</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Project</DialogTitle>
-            </DialogHeader>
-            <ProjectForm 
-              onSubmit={handleFormSubmit} 
-              departments={departments} 
-              members={members} 
-              clients={clients} 
-              formData={formData} 
-              handleInputChange={handleInputChange} 
-              projectEmployees={projectEmployees} 
-              handleAssignEmployee={handleAssignEmployee} 
-              handleRemoveEmployee={handleRemoveEmployee} 
-            />
-          </DialogContent>
-        </Dialog>
+        {isCEO && (
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button>Create New Project</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Project</DialogTitle>
+              </DialogHeader>
+              <ProjectForm 
+                onSubmit={handleCreate} 
+                departments={departments} 
+                members={members} 
+                clients={clients} 
+                formData={formData} 
+                handleInputChange={handleInputChange} 
+                projectEmployees={projectEmployees} 
+                handleAssignEmployee={handleAssignEmployee} 
+                handleRemoveEmployee={handleRemoveEmployee} 
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -357,16 +404,24 @@ export default function ProjectsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-2">{project.description}</p>
+              {isCEO && (
+                <>
+                  <p>Budget: ${project.budget.toLocaleString()}</p>
+                  <p>Payment Made: {project.paymentMade ? 'Yes' : 'No'}</p>
+                </>
+              )}
               <p>Status: {project.status}</p>
-              <p>Budget: ${project.budget.toLocaleString()}</p>
-              <p>Payment Made: {project.paymentMade ? 'Yes' : 'No'}</p>
               <div className="flex space-x-2 mt-4">
-                <Button variant="outline" onClick={() => openEditDialog(project)}>
-                  Edit
-                </Button>
-                <Button variant="destructive" onClick={() => handleDelete(project.id)}>
-                  Delete
-                </Button>
+                {isCEO && (
+                  <Button variant="outline" onClick={() => handleEdit(project)}>
+                    Edit
+                  </Button>
+                )}
+                {isCEO && (
+                  <Button variant="destructive" onClick={() => handleDelete(project.id)}>
+                    Delete
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

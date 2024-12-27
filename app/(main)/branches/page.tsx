@@ -8,8 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react'; // Import useSession from next-auth
 
 export default function BranchesPage() {
+  const { data: session } = useSession(); // Get session data
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentBranch, setCurrentBranch] = useState<Branch | null>(null);
@@ -84,6 +86,7 @@ export default function BranchesPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Branches</h1>
+        {session?.user?.role === 'CEO' && ( // Only show the Add Branch button for CEO
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>Add Branch</Button>
@@ -152,6 +155,7 @@ export default function BranchesPage() {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -163,12 +167,16 @@ export default function BranchesPage() {
             <p>City: {branch.city}</p>
             <p>Head: <Link href={"/members/" + branch.headId}>{branch.head.name}</Link></p>
             <div className="flex gap-2 mt-4">
-              <Button variant="outline" onClick={() => handleEdit(branch)}>
-                Edit
-              </Button>
-              <Button variant="destructive" onClick={() => handleDelete(branch.id)}>
-                Delete
-              </Button>
+              {session?.user?.role === 'CEO' && ( // Check if the user role is CEO
+                <>
+                  <Button variant="outline" onClick={() => handleEdit(branch)}>
+                    Edit
+                  </Button>
+                  <Button variant="destructive" onClick={() => handleDelete(branch.id)}>
+                    Delete
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         ))}
