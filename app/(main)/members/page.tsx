@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ManagerSelect } from '@/components/form-selects'
 import { useSession } from 'next-auth/react'
+import { formatDate, formatDateToISO } from '@/lib/utils'
 
 export default function MembersPage() {
   const { data: session } = useSession()
@@ -91,6 +92,7 @@ export default function MembersPage() {
       memberType: formData.get('memberType'),
       password: formData.get('password'),
       managerId: formData.get('managerId') || undefined,
+      hireDate: formatDateToISO(formData.get('hireDate')) || undefined,
     }
 
     const res = await fetch(`/api/members/${currentMember.id}`, {
@@ -165,8 +167,8 @@ export default function MembersPage() {
                       id="hireDate" 
                       name="hireDate" 
                       type="date" 
-                      required 
-                      defaultValue={currentMember?.hireDate} 
+                      required
+                      defaultValue={formatDate(currentMember?.hireDate)} 
                     />
                   </div>
                 </>

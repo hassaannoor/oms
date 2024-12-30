@@ -7,7 +7,7 @@ export async function PUT(
 ) {
 //   try {
     // Ensure params.id exists
-    const id = await params;
+    const { id } = await params;
     if (!id) {
       return NextResponse.json({ error: 'Member ID is required' }, { status: 400 })
     }
@@ -17,7 +17,7 @@ export async function PUT(
     // Update the member
     const updatedMember = await prisma.member.update({
       where: { 
-        id: await Promise.resolve(id) // Await the dynamic parameter
+        id: id
       },
       data: {
         name: body.name,
@@ -26,10 +26,11 @@ export async function PUT(
         cnic: body.cnic,
         salary: parseFloat(body.salary),
         memberType: body.memberType,
+        hireDate: body.hireDate,
         // Optional fields based on memberType
-        ...(body.memberType === "EMPLOYEE"
-          ? { managerId: body.managerId || null }
-          : { managerId: null }
+        ...(body.memberType === "EMPLOYEE" && body.managerId
+          ? { managerId: body.managerId }
+          : { }
         ),
         // Update the associated user
         user: {
